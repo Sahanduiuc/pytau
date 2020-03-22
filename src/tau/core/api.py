@@ -6,15 +6,37 @@ from datetimerange import DateTimeRange
 
 
 class Event(ABC):
-    pass
+    @abstractmethod
+    def on_raise(self) -> bool:
+        pass
 
 
 class Signal(Event, ABC):
-    pass
+    def __init__(self, initial_value: Any = None):
+        self.value = initial_value
+        self.modified = False
+
+    def is_valid(self) -> bool:
+        return self.value is not None
+
+    def get_value(self) -> Any:
+        return self.value
+
+    def _update(self, value):
+        self.value = value
+        self.modified = True
 
 
 class MutableSignal(Signal):
-    pass
+    def on_raise(self) -> bool:
+        if self.modified:
+            self.modified = False
+            return True
+        else:
+            return False
+
+    def set_value(self, value: Any):
+        self._update(value)
 
 
 class Timeline(ABC):
@@ -71,39 +93,4 @@ class Timeline(ABC):
     @abstractmethod
     def shutdown(self):
         pass
-
-
-class Event(ABC):
-    @abstractmethod
-    def on_raise(self) -> bool:
-        pass
-
-
-class Signal(Event, ABC):
-    def __init__(self, initial_value: Any = None):
-        self.value = initial_value
-        self.modified = False
-
-    def is_valid(self) -> bool:
-        return self.value is not None
-
-    def get_value(self) -> Any:
-        return self.value
-
-    def _update(self, value):
-        self.value = value
-        self.modified = True
-
-
-# noinspection PyRedeclaration
-class MutableSignal(Signal):
-    def on_raise(self) -> bool:
-        if self.modified:
-            self.modified = False
-            return True
-        else:
-            return False
-
-    def set_value(self, value: Any):
-        self._update(value)
 
