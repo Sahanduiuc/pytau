@@ -1,6 +1,6 @@
 from math import sqrt
 
-from tau.core.api import Signal, Timeline
+from tau.core.api import Signal, Network
 from tau.event import Function
 
 
@@ -8,10 +8,10 @@ class RunningSum(Function):
     """
     Real-time calculation of a running sum of a numeric event.
     """
-    def __init__(self, timeline: Timeline, values: Signal):
-        super().__init__(timeline, [values])
+    def __init__(self, network: Network, values: Signal):
+        super().__init__(network, [values])
         self.values = values
-        self.sum = 0
+        self._update(0.0)
 
     def _call(self):
         if self.values.is_valid():
@@ -22,10 +22,11 @@ class Mean(Function):
     """
     Real-time calculation of the mean of a numeric event.
     """
-    def __init__(self, timeline: Timeline, values: Signal):
-        super().__init__(timeline, [values])
+    def __init__(self, network: Network, values: Signal):
+        super().__init__(network, [values])
         self.values = values
         self.count = 0
+        self._update(0.0)
 
     def _call(self):
         if self.values.is_valid():
@@ -38,11 +39,12 @@ class Stddev(Function):
     """
     Real-time calculation of the standard deviation of a numeric event.
     """
-    def __init__(self, timeline: Timeline, values: Signal):
-        super().__init__(timeline, [values])
+    def __init__(self, network: Network, values: Signal):
+        super().__init__(network, [values])
         self.values = values
         self.count = 0.0
         self.mean = 0.0
+        self._update(0.0)
 
     def _call(self):
         if self.values.is_valid():
@@ -59,10 +61,11 @@ class ExponentialMovingAverage(Function):
     """
     Real-time calculation of EMA (Exponential Moving Average).
     """
-    def __init__(self, timeline: Timeline, values: Signal):
-        super().__init__(timeline, [values])
+    def __init__(self, network: Network, values: Signal):
+        super().__init__(network, [values])
         self.values = values
         self.count = 0.0
+        self._update(0.0)
 
     def _call(self):
         if self.values.is_valid():
@@ -76,11 +79,12 @@ class WeightedMovingAverage(Function):
     """
     Real-time calculation of WMA (Weighted Moving Average).
     """
-    def __init__(self, timeline: Timeline, values: Signal, weighting_factor: float):
-        super().__init__(timeline, [values])
+    def __init__(self, network: Network, values: Signal, weighting_factor: float):
+        super().__init__(network, [values])
         self.values = values
         self.weighting_factor = weighting_factor
         self.prev_val = 0.0
+        self._update(0.0)
 
     def _call(self):
         if self.values.is_valid():

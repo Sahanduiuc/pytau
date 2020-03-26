@@ -1,21 +1,23 @@
-from datetime import timedelta
+from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.triggers.date import DateTrigger
 
-from tau.core.api import Event, Signal, MutableSignal
-from tau.core.singlethreaded import SingleThreadedTimeline
+from tau.core.api import Event, Signal, MutableSignal, Network, NetworkScheduler
 
 
 class SayHello(Event):
     def __init__(self, name: Signal):
+        super().__init__()
         self.name = name
 
-    def on_raise(self) -> bool:
+    def on_activate(self):
         print(f"Hello, {self.name.get_value()}!")
-        return False
 
 
-timeline = SingleThreadedTimeline()
-timeline.run()
-
+network = Network()
 signal = MutableSignal()
-timeline.bind(signal, SayHello(signal))
-timeline.raise_signal_after(signal, "world", timedelta(seconds=5))
+network.connect(signal, SayHello(signal))
+
+scheduler = BlockingScheduler()
+network_scheduler = NetworkScheduler(scheduler, network)
+network_scheduler.schedule_update(signal, "world", DateTrigger())
+scheduler.start()

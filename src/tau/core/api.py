@@ -1,34 +1,61 @@
 from abc import ABC, abstractmethod
-from datetime import timedelta, datetime
 from typing import Any
 
-from datetimerange import DateTimeRange
+import networkx
+from apscheduler.schedulers.base import BaseScheduler
+from apscheduler.triggers.base import BaseTrigger
 
 
 class Event(ABC):
+    """
+    An action that happens at a moment in time.
+    """
+    def __init__(self):
+        self.propagate = True
+
     @abstractmethod
-    def on_raise(self) -> bool:
+    def on_activate(self) -> bool:
+        """
+        Callback made whenever this event gets activated.
+        :return: False if you do not wish successor events to be activated
+        """
         pass
 
 
 class Signal(Event, ABC):
+    """
+    An Event with a value associated with it.
+    """
     def __init__(self, initial_value: Any = None):
+        super().__init__()
         self.value = initial_value
         self.modified = False
 
     def is_valid(self) -> bool:
+        """
+        :return: True if the value is non-None (default behavior; may be subclassed)
+        """
         return self.value is not None
 
     def get_value(self) -> Any:
+        """
+        Gets the current value of the signal; may be None.
+        """
         return self.value
 
     def _update(self, value):
+        """
+        Internal method for updating the value of the signal; used it subclasses.
+        """
         self.value = value
         self.modified = True
 
 
 class MutableSignal(Signal):
-    def on_raise(self) -> bool:
+    def __init__(self, initial_value: Any = None):
+        super().__init__(initial_value)
+
+    def on_activate(self):
         if self.modified:
             self.modified = False
             return True
@@ -39,58 +66,33 @@ class MutableSignal(Signal):
         self._update(value)
 
 
-class Timeline(ABC):
+class Network:
     def __init__(self):
-        self.epoch = 0
-        self.running = False
-        self.run_time = DateTimeRange()
+        self.graph = networkx.Graph()
 
-    def get_epoch(self):
-        return self.epoch
+    def connect(self, evt1: Event, evt2: Event):
+        self.graph.add_edge(evt1, evt2)
 
-    def is_running(self) -> bool:
-        return self.running
+    def disconnect(self, evt1: Event, evt2: Event):
+        self.graph.remove_edge(evt1, evt2)
 
-    def get_run_time(self) -> DateTimeRange:
-        return self.run_time
+    def activate(self, evt: Event):
+        ordering = networkx.dfs_preorder_nodes(self.graph, evt)
+        for node in ordering:
+            if not node.on_activate():
+                break
 
-    @abstractmethod
-    def bind(self, evt1: Event, evt2: Event):
-        pass
 
-    @abstractmethod
-    def unbind(self, evt1: Event, evt2: Event):
-        pass
+class NetworkScheduler:
+    def __init__(self, scheduler: BaseScheduler, network: Network):
+        self.scheduler = scheduler
+        self.network = network
 
-    @abstractmethod
-    def raise_event(self, evt: Event):
-        pass
+    def schedule_event(self, evt: Event, trigger: BaseTrigger):
+        self.scheduler.add_job(lambda: self.network.activate(evt), trigger)
 
-    @abstractmethod
-    def raise_event_after(self, evt: Event, duration: timedelta):
-        pass
-
-    @abstractmethod
-    def raise_event_at(self, evt: Event, at_time: datetime):
-        pass
-
-    @abstractmethod
-    def raise_signal(self, signal: MutableSignal, value):
-        pass
-
-    @abstractmethod
-    def raise_signal_after(self, signal: MutableSignal, value, duration: timedelta):
-        pass
-
-    @abstractmethod
-    def raise_signal_at(self, signal: MutableSignal, value, at_time: datetime):
-        pass
-
-    @abstractmethod
-    def run(self, run_time: DateTimeRange = DateTimeRange()):
-        pass
-
-    @abstractmethod
-    def shutdown(self):
-        pass
-
+    def schedule_update(self, signal: MutableSignal, value: Any, trigger: BaseTrigger):
+        def set_and_activate():
+            signal.set_value(value)
+            self.network.activate(signal)
+        self.scheduler.add_job(set_and_activate, trigger)

@@ -1,17 +1,19 @@
-from datetime import timedelta
+from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.triggers.date import DateTrigger
 
-from tau.core.api import Event
-from tau.core.singlethreaded import SingleThreadedTimeline
+from tau.core.api import Event, Network, NetworkScheduler
 
 
 class HelloWorld(Event):
-    def on_raise(self) -> bool:
+    def on_activate(self):
         print("Hello, world!")
         return False
 
 
-timeline = SingleThreadedTimeline()
-timeline.run()
+network = Network()
 
-timeline.raise_event_after(HelloWorld(), timedelta(seconds=5))
+scheduler = BlockingScheduler()
+network_scheduler = NetworkScheduler(scheduler, network)
+network_scheduler.schedule_event(HelloWorld(), DateTrigger())
+scheduler.start()
 

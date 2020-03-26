@@ -1,21 +1,20 @@
 from abc import abstractmethod
 from typing import List, Callable, Any
 
-from tau.core.api import Signal, Timeline, Event
+from tau.core.api import Signal, Event, Network
 
 
 class Function(Signal):
     """
     Base class for streaming functions with zero or more streaming input signals.
     """
-    def __init__(self, timeline: Timeline, parameters: List):
+    def __init__(self, network: Network, parameters: List):
         super().__init__()
         self.parameters = parameters
         for param in parameters:
-            # noinspection PyTypeChecker
-            timeline.bind(param, self)
+            network.connect(param, self)
 
-    def on_raise(self):
+    def on_activate(self) -> bool:
         self.modified = False
         self._call()
         return self.modified
@@ -26,8 +25,8 @@ class Function(Signal):
 
 
 class Filter(Function):
-    def __init__(self, timeline: Timeline, values: Signal, predicate: Callable[[Any], bool]):
-        super().__init__(timeline, [values])
+    def __init__(self, network: Network, values: Signal, predicate: Callable[[Any], bool]):
+        super().__init__(network, [values])
         self.values = values
         self.predicate = predicate
 
@@ -39,8 +38,8 @@ class Filter(Function):
 
 
 class Map(Function):
-    def __init__(self, timeline: Timeline, values: Signal, mapper: Callable[[Any], Any]):
-        super().__init__(timeline, [values])
+    def __init__(self, network: Network, values: Signal, mapper: Callable[[Any], Any]):
+        super().__init__(network, [values])
         self.values = values
         self.mapper = mapper
 
@@ -51,13 +50,12 @@ class Map(Function):
 
 
 class ForEach(Event):
-    def __init__(self, timeline: Timeline, values: Signal, function: Callable[[Any], None]):
+    def __init__(self, network: Network, values: Signal, function: Callable[[Any], None]):
         super().__init__()
         self.values = values
         self.function = function
-        timeline.bind(values, self)
+        network.connect(values, self)
 
-    def on_raise(self) -> bool:
+    def on_activate(self):
         if self.values.is_valid():
             self.function(self.values.get_value())
-        return True
