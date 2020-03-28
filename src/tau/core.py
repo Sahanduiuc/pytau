@@ -1,23 +1,22 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-import networkx
 from apscheduler.schedulers.base import BaseScheduler
 from apscheduler.triggers.base import BaseTrigger
+import networkx
+
+from tau.trigger import ImmediateTrigger
 
 
 class Event(ABC):
     """
     An action that happens at a moment in time.
     """
-    def __init__(self):
-        self.propagate = True
-
     @abstractmethod
     def on_activate(self) -> bool:
         """
         Callback made whenever this event gets activated.
-        :return: False if you do not wish successor events to be activated
+        :returns: True if subsequent nodes in the graph should be activated
         """
         pass
 
@@ -68,30 +67,48 @@ class MutableSignal(Signal):
 
 class Network:
     def __init__(self):
-        self.graph = networkx.Graph()
+        self.graph = networkx.DiGraph()
+        self.activation_flags = dict()
 
     def connect(self, evt1: Event, evt2: Event):
+        self.activation_flags[evt1] = False
+        self.activation_flags[evt2] = False
         self.graph.add_edge(evt1, evt2)
 
     def disconnect(self, evt1: Event, evt2: Event):
+        del self.activation_flags[evt1]
+        del self.activation_flags[evt2]
         self.graph.remove_edge(evt1, evt2)
 
+    def has_activated(self, evt: Event):
+        return self.activation_flags[evt]
+
     def activate(self, evt: Event):
-        ordering = networkx.dfs_preorder_nodes(self.graph, evt)
+        nodes = networkx.descendants(self.graph, evt)
+        ordering = networkx.topological_sort(networkx.subgraph(self.graph, nodes))
+        self.__clear_activation_flags()
         for node in ordering:
             if not node.on_activate():
                 break
+            else:
+                self.activation_flags[node] = True
+
+    def __clear_activation_flags(self):
+        self.activation_flags = self.activation_flags.fromkeys(self.activation_flags, False)
 
 
 class NetworkScheduler:
-    def __init__(self, scheduler: BaseScheduler, network: Network):
+    def __init__(self, scheduler: BaseScheduler, network: Network = Network()):
         self.scheduler = scheduler
         self.network = network
 
-    def schedule_event(self, evt: Event, trigger: BaseTrigger):
+    def get_network(self):
+        return self.network
+
+    def schedule_event(self, evt: Event, trigger: BaseTrigger = ImmediateTrigger()):
         self.scheduler.add_job(lambda: self.network.activate(evt), trigger)
 
-    def schedule_update(self, signal: MutableSignal, value: Any, trigger: BaseTrigger):
+    def schedule_update(self, signal: MutableSignal, value: Any, trigger: BaseTrigger = ImmediateTrigger()):
         def set_and_activate():
             signal.set_value(value)
             self.network.activate(signal)
