@@ -4,6 +4,9 @@ from apscheduler.triggers.base import BaseTrigger
 
 
 class ImmediateTrigger(BaseTrigger):
+    """
+    A trigger that fires immediately.
+    """
     def __init__(self):
         self.scheduled = False
 
@@ -15,6 +18,9 @@ class ImmediateTrigger(BaseTrigger):
 
 
 class DelayTrigger(BaseTrigger):
+    """
+    A trigger that fires once, after a delay of timedelta.
+    """
     def __init__(self, delay: timedelta):
         self.scheduled = False
         self.delay = delay

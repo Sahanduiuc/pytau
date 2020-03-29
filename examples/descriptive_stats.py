@@ -1,12 +1,12 @@
 from tau.event import Lambda
-from tau.signal import OneShot
+from tau.signal import From
 from tau.math import Max, Mean, Min, Stddev
 
 from tau.testing import TestSchedulerContextManager
 
 with TestSchedulerContextManager() as scheduler:
     network = scheduler.get_network()
-    values = OneShot(scheduler, [0.0, 3.2, 2.1, 2.9, 8.3, 5.7])
+    values = From(scheduler, [0.0, 3.2, 2.1, 2.9, 8.3, 5.7])
 
     max_value = Max(network, values)
     min_value = Min(network, values)

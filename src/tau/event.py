@@ -1,11 +1,11 @@
 from typing import Callable, Any
 
-from tau.core import Signal, Event, Network
+from tau.core import Event, Network
 
 
 class Lambda(Event):
     """
-    A helper implementation of Event that binds any Python function to zero or more Event parameters
+    A helper implementation of Event that binds any Python function to zero or more Event parameters.
     """
     def __init__(self, network: Network, parameters: Any, function: Callable[[Any], Any]):
         super().__init__()
@@ -21,14 +21,19 @@ class Lambda(Event):
         return self.function(self.parameters)
 
 
-class ForEach(Event):
-    def __init__(self, network: Network, values: Signal, function: Callable[[Any], Any]):
+class Do(Event):
+    """
+    A simple operator that executes a function whenever an Event fires; a more limited form of
+    Lambda, which lets you connect to multiple upstream parameters and pass them to the function.
+
+    .. seealso:: http://reactivex.io/documentation/operators/do.html
+    """
+    def __init__(self, network: Network, event: Event, function: Callable[[], Any]):
         super().__init__()
-        self.values = values
+        self.event = event
         self.function = function
-        network.connect(values, self)
+        network.connect(event, self)
 
     def on_activate(self) -> bool:
-        if self.values.is_valid():
-            self.function(self.values.get_value())
-        return False
+        self.function()
+        return True

@@ -8,13 +8,14 @@ with open('HISTORY.rst', 'r') as f:
 
 
 requires = [
-    'requests>=2.20.0',
-    'token-bucket>=0.2.0'
+    'APScheduler>=3.6.3',
+    'datetimerange>=0.6.1',
+    'networkx>=2.4'
 ]
 
 setuptools.setup(
     name='pytau',
-    version='0.0.1',
+    version='0.0.2',
     description='A Python functional reactive framework.',
     long_description=readme + '\n\n' + history,
     long_description_content_type='text/x-rst',

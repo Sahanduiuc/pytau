@@ -1,20 +1,21 @@
-from datetime import timedelta
+from threading import Timer
 
-from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from tau.core import NetworkScheduler
-from tau.trigger import DelayTrigger
 
 
 class TestSchedulerContextManager:
-    def __init__(self, delay: int = 1):
-        self.scheduler = BlockingScheduler()
-        self.delay = delay
+    def __init__(self, scheduler=BackgroundScheduler(daemon=False), shutdown_delay=1):
+        self.scheduler = scheduler
+        self.shutdown_delay = shutdown_delay
 
     def __enter__(self):
         return NetworkScheduler(self.scheduler)
 
     def __exit__(self, *args):
-        # start and then shut down scheduler after one second
-        self.scheduler.add_job(lambda: self.scheduler.shutdown(wait=False), DelayTrigger(timedelta(seconds=self.delay)))
         self.scheduler.start()
+
+        # use a simple timer to schedule the scheduler shutdown
+        t = Timer(self.shutdown_delay, lambda: self.scheduler.shutdown(wait=False))
+        t.start()

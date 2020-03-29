@@ -51,6 +51,9 @@ class Signal(Event, ABC):
 
 
 class MutableSignal(Signal):
+    """
+    A signal whose value can be updated programmatically.
+    """
     def __init__(self, initial_value: Any = None):
         super().__init__(initial_value)
 
@@ -66,6 +69,9 @@ class MutableSignal(Signal):
 
 
 class Network:
+    """
+    A graph network connecting Events.
+    """
     def __init__(self):
         self.graph = networkx.DiGraph()
         self.activation_flags = dict()
@@ -83,13 +89,27 @@ class Network:
     def has_activated(self, evt: Event):
         return self.activation_flags[evt]
 
+    # noinspection PyCallingNonCallable
     def activate(self, evt: Event):
         nodes = networkx.descendants(self.graph, evt)
         ordering = networkx.topological_sort(networkx.subgraph(self.graph, nodes))
         self.__clear_activation_flags()
+
+        # process the originating node
+        if not evt.on_activate():
+            return
+        else:
+            self.activation_flags[evt] = True
+
+        # process the node's descendants
         for node in ordering:
             if not node.on_activate():
-                break
+                # skip forward to the next terminal node
+                skipping = True
+                while skipping:
+                    node = next(ordering, None)
+                    if not node or self.graph.out_degree(node) == 0:
+                        skipping = False
             else:
                 self.activation_flags[node] = True
 
@@ -98,9 +118,16 @@ class Network:
 
 
 class NetworkScheduler:
+    """
+    A higher-level scheduler object sitting on top of APScheduler that provides natural operations for
+    scheduling events connected in a Network.
+    """
     def __init__(self, scheduler: BaseScheduler, network: Network = Network()):
         self.scheduler = scheduler
         self.network = network
+
+    def get_native_scheduler(self):
+        return self.scheduler
 
     def get_network(self):
         return self.network
