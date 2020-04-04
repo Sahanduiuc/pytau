@@ -1,10 +1,13 @@
+import asyncio
+
+from tau.core import NetworkScheduler
 from tau.event import Lambda
 from tau.signal import From
 from tau.math import Max, Mean, Min, Stddev
 
-from tau.testing import TestSchedulerContextManager
 
-with TestSchedulerContextManager() as scheduler:
+async def main():
+    scheduler = NetworkScheduler()
     network = scheduler.get_network()
     values = From(scheduler, [0.0, 3.2, 2.1, 2.9, 8.3, 5.7])
 
@@ -20,3 +23,4 @@ with TestSchedulerContextManager() as scheduler:
 
     Lambda(network, [min_value, max_value, avg, stddev], print_stats)
 
+asyncio.run(main())

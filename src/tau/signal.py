@@ -1,12 +1,9 @@
+import asyncio
 from abc import abstractmethod
 from datetime import timedelta
 from typing import Callable, Any, List
 
-from apscheduler.schedulers.base import BaseScheduler
-from apscheduler.triggers.interval import IntervalTrigger
-
 from tau.core import Signal, Network, MutableSignal, NetworkScheduler, Event
-from tau.trigger import ImmediateTrigger
 
 
 class Function(Signal):
@@ -59,17 +56,19 @@ class BufferWithTime(Function):
 
     .. seealso:: http://reactivex.io/documentation/operators/buffer.html
     """
-    def __init__(self, network: Network, values: Signal, interval: timedelta, scheduler: BaseScheduler):
+    def __init__(self, network: Network, values: Signal, interval: timedelta):
         super().__init__(network, [values])
         self.values = values
         self.interval = interval
-        self.scheduler = scheduler
         self.buffer = list()
         self.timed_out = False
 
-        def expire_timeout():
-            self.timed_out = True
-        self.scheduler.add_job(expire_timeout, IntervalTrigger(seconds=int(self.interval.total_seconds())))
+        async def expire_timeout():
+            while True:
+                await asyncio.sleep(int(self.interval.total_seconds()))
+                self.timed_out = True
+
+        asyncio.create_task(expire_timeout())
 
     def _call(self):
         if self.values.is_valid():
@@ -121,7 +120,7 @@ class Just(MutableSignal):
     """
     def __init__(self, scheduler: NetworkScheduler, value: Any):
         super().__init__()
-        scheduler.schedule_update(self, value, ImmediateTrigger())
+        scheduler.schedule_update(self, value)
 
 
 class From(MutableSignal):
@@ -133,7 +132,7 @@ class From(MutableSignal):
     def __init__(self, scheduler: NetworkScheduler, values: List):
         super().__init__()
         for value in values:
-            scheduler.schedule_update(self, value, ImmediateTrigger())
+            scheduler.schedule_update(self, value)
 
 
 class Interval(MutableSignal):
@@ -150,12 +149,13 @@ class Interval(MutableSignal):
         super().__init__()
         self.next_value = 0
 
-        def schedule_update():
-            self.next_value += 1
-            scheduler.schedule_update(self, self.next_value, ImmediateTrigger())
+        async def schedule_update():
+            while True:
+                self.next_value += 1
+                scheduler.schedule_update(self, self.next_value)
+                await asyncio.sleep(int(interval.total_seconds()))
 
-        scheduler.get_native_scheduler().add_job(schedule_update,
-                                                 IntervalTrigger(seconds=int(interval.total_seconds())))
+        asyncio.create_task(schedule_update())
 
 
 class Scan(Function):

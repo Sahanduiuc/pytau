@@ -8,14 +8,13 @@ with open('HISTORY.rst', 'r') as f:
 
 
 requires = [
-    'APScheduler>=3.6.3',
-    'datetimerange>=0.6.1',
-    'networkx>=2.4'
+    'networkx>=2.4',
+    'websockets>=8.1'
 ]
 
 setuptools.setup(
     name='pytau',
-    version='0.0.2',
+    version='0.1.0',
     description='A Python functional reactive framework.',
     long_description=readme + '\n\n' + history,
     long_description_content_type='text/x-rst',
@@ -24,7 +23,7 @@ setuptools.setup(
     author_email='kyle.downey@gmail.com',
     url='https://github.com/cloudwall/pytau',
     packages=setuptools.find_packages(),
-    python_requires='>=3.7.x',
+    python_requires='>=3.8.x',
     install_requires=requires,
     classifiers=(
         'Development Status :: 4 - Beta',

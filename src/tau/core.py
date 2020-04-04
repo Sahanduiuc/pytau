@@ -1,11 +1,8 @@
+import asyncio
 from abc import ABC, abstractmethod
 from typing import Any
 
-from apscheduler.schedulers.base import BaseScheduler
-from apscheduler.triggers.base import BaseTrigger
 import networkx
-
-from tau.trigger import ImmediateTrigger
 
 
 class Event(ABC):
@@ -119,24 +116,20 @@ class Network:
 
 class NetworkScheduler:
     """
-    A higher-level scheduler object sitting on top of APScheduler that provides natural operations for
+    A higher-level scheduler object sitting on top of asyncio that provides natural operations for
     scheduling events connected in a Network.
     """
-    def __init__(self, scheduler: BaseScheduler, network: Network = Network()):
-        self.scheduler = scheduler
+    def __init__(self, network: Network = Network()):
         self.network = network
-
-    def get_native_scheduler(self):
-        return self.scheduler
 
     def get_network(self):
         return self.network
 
-    def schedule_event(self, evt: Event, trigger: BaseTrigger = ImmediateTrigger()):
-        self.scheduler.add_job(lambda: self.network.activate(evt), trigger)
+    def schedule_event(self, evt: Event):
+        asyncio.get_event_loop().call_soon(lambda: self.network.activate(evt))
 
-    def schedule_update(self, signal: MutableSignal, value: Any, trigger: BaseTrigger = ImmediateTrigger()):
+    def schedule_update(self, signal: MutableSignal, value: Any):
         def set_and_activate():
             signal.set_value(value)
             self.network.activate(signal)
-        self.scheduler.add_job(set_and_activate, trigger)
+        asyncio.get_event_loop().call_soon(set_and_activate)
