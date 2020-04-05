@@ -5,6 +5,7 @@ import websockets
 
 from tau.core import NetworkScheduler, MutableSignal
 from tau.event import Do
+from tau.signal import Map, Filter
 
 
 async def subscribe_trades(message_callback):
@@ -22,6 +23,11 @@ async def subscribe_trades(message_callback):
 
 messages = MutableSignal()
 scheduler = NetworkScheduler()
-Do(scheduler.get_network(), messages, lambda: print(f"{messages.get_value()}"))
+network = scheduler.get_network()
+
+json_messages = Map(network, messages, lambda x: json.loads(x))
+incr_messages = Filter(network, json_messages,
+                       lambda x: x.get('type', None) == 'incremental')
+Do(network, incr_messages, lambda: print(f"{messages.get_value()}"))
 
 asyncio.get_event_loop().run_until_complete(subscribe_trades(messages))
