@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+0.2.0 (2020-04-13)
+++++++++++++++++++
+
+- Switched back to Python 3.7.x
+
 0.1.1 (2020-04-04)
 +++++++++++++++++++
 
@@ -16,6 +21,7 @@ Release History
 - Remove dependency on APScheduler
 - Rewrite to use asyncio internally
 - Added websocket example
+- Switched to require Python version >= 3.8
 
 0.0.2 (2020-03-28)
 +++++++++++++++++++
