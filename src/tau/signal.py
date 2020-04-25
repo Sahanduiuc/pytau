@@ -113,6 +113,33 @@ class Map(Function):
             self._update(self.mapper(next_value))
 
 
+class FlatMap(MutableSignal):
+    """
+    Transforming function that applies a Callable to incoming values and updates the output value.
+
+    .. seealso:: http://reactivex.io/documentation/operators/flatmap.html
+    """
+    def __init__(self, scheduler: NetworkScheduler, values: Signal):
+        super().__init__()
+        self.scheduler = scheduler
+        self.values = values
+
+        class Handler(Event):
+            def __init__(self, outer):
+                self.outer = outer
+
+            def on_activate(self) -> bool:
+                if values.is_valid():
+                    next_values = values.get_value()
+                    for next_value in next_values:
+                        scheduler.schedule_update(self.outer, next_value)
+                    return True
+                else:
+                    return False
+
+        scheduler.get_network().connect(values, Handler(self))
+
+
 class Just(MutableSignal):
     """
     Emits a single value immediately.
