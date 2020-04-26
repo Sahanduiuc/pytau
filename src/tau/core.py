@@ -107,6 +107,10 @@ class Network:
                     node = next(ordering, None)
                     if not node or self.graph.out_degree(node) == 0:
                         skipping = False
+
+                        # process the node we already pulled from the ordering
+                        if node:
+                            self.activation_flags[node] = node.on_activate()
             else:
                 self.activation_flags[node] = True
 

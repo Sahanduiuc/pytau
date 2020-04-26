@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+0.3.1 (2020-04-26)
+++++++++++++++++++
+
+- Fixed case where next sibling node activation skipped
+
 0.3.0 (2020-04-25)
 ++++++++++++++++++
 
