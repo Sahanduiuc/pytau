@@ -2,7 +2,8 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import Any
 
-import networkx
+# noinspection PyPackageRequirements
+from graph import Graph
 
 
 class Event(ABC):
@@ -70,49 +71,48 @@ class Network:
     A graph network connecting Events.
     """
     def __init__(self):
-        self.graph = networkx.DiGraph()
+        self.graph = Graph()
         self.activation_flags = dict()
+        self.current_id = 0
+        self.node_id_map = {}
+
+    def attach(self, evt: Event):
+        if evt in self.node_id_map:
+            return
+        else:
+            node_id = self.__next_id()
+            self.node_id_map[evt] = node_id
+            self.graph.add_node(node_id, evt)
 
     def connect(self, evt1: Event, evt2: Event):
         self.activation_flags[evt1] = False
         self.activation_flags[evt2] = False
-        self.graph.add_edge(evt1, evt2)
+        self.attach(evt1)
+        self.attach(evt2)
+        self.graph.add_edge(self.node_id_map[evt1], self.node_id_map[evt2])
 
     def disconnect(self, evt1: Event, evt2: Event):
         del self.activation_flags[evt1]
         del self.activation_flags[evt2]
-        self.graph.remove_edge(evt1, evt2)
+        self.graph.del_edge(self.node_id_map[evt1], self.node_id_map[evt2])
 
     def has_activated(self, evt: Event):
         return self.activation_flags[evt]
 
     # noinspection PyCallingNonCallable
     def activate(self, evt: Event):
-        nodes = networkx.descendants(self.graph, evt)
-        ordering = networkx.topological_sort(networkx.subgraph(self.graph, nodes))
         self.__clear_activation_flags()
 
-        # process the originating node
-        if not evt.on_activate():
-            return
-        else:
-            self.activation_flags[evt] = True
+        def scan_nodes(node_id) -> bool:
+            current_evt = self.graph.node(node_id)
+            self.activation_flags[current_evt] = True
+            return current_evt.on_activate()
 
-        # process the node's descendants
-        for node in ordering:
-            if not node.on_activate():
-                # skip forward to the next terminal node
-                skipping = True
-                while skipping:
-                    node = next(ordering, None)
-                    if not node or self.graph.out_degree(node) == 0:
-                        skipping = False
+        self.graph.depth_scan(self.node_id_map[evt], scan_nodes)
 
-                        # process the node we already pulled from the ordering
-                        if node:
-                            self.activation_flags[node] = node.on_activate()
-            else:
-                self.activation_flags[node] = True
+    def __next_id(self):
+        self.current_id += 1
+        return self.current_id
 
     def __clear_activation_flags(self):
         self.activation_flags = self.activation_flags.fromkeys(self.activation_flags, False)

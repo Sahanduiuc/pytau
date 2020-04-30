@@ -42,3 +42,8 @@ Tau runs on `Python <http://www.python.org/>`_ 3.8 or above. To install Tau:
 .. code:: console
 
     pip3 install pytau
+
+Credits
+-------
+
+Thanks to *Bjorn Madsen* for adding a feature to graph-theory to make Tau's event propagation work.

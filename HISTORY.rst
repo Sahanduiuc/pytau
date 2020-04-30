@@ -3,6 +3,13 @@
 Release History
 ---------------
 
+0.4.0 (2020-04-30)
+++++++++++++++++++
+
+- Rewrote core graph functions using graph-theory; removed networkx dependency
+- Properly fixed case where next sibling node activation skipped
+- Added Network#attach() method to explicitly add a node to the graph without connecting it
+
 0.3.1 (2020-04-26)
 ++++++++++++++++++
 

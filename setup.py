@@ -11,13 +11,13 @@ with open('HISTORY.rst', 'r') as f:
 
 
 requires = [
-    'networkx>=2.4',
+    'graph-theory>=2020.4.30.58797',
     'websockets>=8.1'
 ]
 
 setuptools.setup(
     name='pytau',
-    version='0.3.1',
+    version='0.4.0',
     description='A Python functional reactive framework.',
     long_description=readme + '\n\n' + history,
     long_description_content_type='text/x-rst',
