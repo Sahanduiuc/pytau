@@ -37,7 +37,7 @@ designed for Python from the ground up.
 Installation
 ------------
 
-Tau runs on `Python <http://www.python.org/>`_ 3.8 or above. To install Tau:
+Tau runs on `Python <http://www.python.org/>`_ 3.7 or above. To install Tau:
 
 .. code:: console
 
