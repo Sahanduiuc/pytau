@@ -2,7 +2,7 @@ Tau: Python Reactive Programming
 ================================
 
 .. image:: https://dev.azure.com/cloudwall/Tau/_apis/build/status/cloudwall.pytau?branchName=master
-    :target: https://dev.azure.com/cloudwall/Tau/_build/latest
+    :target: https://dev.azure.com/cloudwall/Tau/_build/latest?definitionId=3
 
 .. image:: https://img.shields.io/pypi/v/pytau.svg
     :target: https://pypi.org/project/pytau/
