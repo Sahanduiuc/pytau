@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+0.4.1 (2020-05-02)
+++++++++++++++++++
+
+- Added unit tests
+- Integrated Azure DevOps build pipeline
+
 0.4.0 (2020-04-30)
 ++++++++++++++++++
 
