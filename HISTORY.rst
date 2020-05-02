@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+0.4.2 (2020-05-02)
+++++++++++++++++++
+
+- Added more unit tests
+- Removed declared support for Python 3.6; missing asyncio functions
+
 0.4.1 (2020-05-02)
 ++++++++++++++++++
 
