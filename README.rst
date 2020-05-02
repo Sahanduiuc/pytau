@@ -1,6 +1,9 @@
 Tau: Python Reactive Programming
 ================================
 
+.. image:: https://dev.azure.com/cloudwall/Tau/_apis/build/status/cloudwall.pytau?branchName=master
+    :target: https://dev.azure.com/cloudwall/Tau/_build/latest
+
 .. image:: https://img.shields.io/pypi/v/pytau.svg
     :target: https://pypi.org/project/pytau/
 
@@ -37,7 +40,7 @@ designed for Python from the ground up.
 Installation
 ------------
 
-Tau runs on `Python <http://www.python.org/>`_ 3.7 or above. To install Tau:
+Tau runs on `Python <http://www.python.org/>`_ 3.6 or above. To install Tau:
 
 .. code:: console
 
