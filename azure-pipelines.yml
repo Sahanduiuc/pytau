@@ -28,6 +28,6 @@ steps:
   displayName: 'Install dependencies'
 
 - script: |
-    pip install pytest pytest-azurepipelines
-    PYTHONPATH=src pytest tests
-  displayName: 'Test with pytest'
+    pip install pytest pytest-azurepipelines pytest-cov
+    PYTHONPATH=src/ pytest tests/ --cov Tau --cov-report html
+  displayName: 'Test and report coverage with pytest'
