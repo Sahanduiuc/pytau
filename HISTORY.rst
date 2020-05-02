@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+0.4.3 (2020-05-02)
+++++++++++++++++++
+
+- Added more unit tests
+- Fixed build badge target URL
+
 0.4.2 (2020-05-02)
 ++++++++++++++++++
 
