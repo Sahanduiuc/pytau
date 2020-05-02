@@ -28,7 +28,6 @@ steps:
   displayName: 'Install dependencies'
 
 - script: |
-    pip install pytest
-    pip install pytest-cov
-    pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
+    pip install pytest pytest-azurepipelines
+    PYTHONPATH=src pytest tests
   displayName: 'Test with pytest'
