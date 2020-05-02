@@ -29,5 +29,5 @@ steps:
 
 - script: |
     pip install pytest pytest-azurepipelines pytest-cov
-    PYTHONPATH=src/ pytest tests/ --cov Tau --cov-report html
+    PYTHONPATH=src/ pytest tests/ --cov src/ --cov-report html
   displayName: 'Test and report coverage with pytest'
