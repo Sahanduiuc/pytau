@@ -185,6 +185,32 @@ class Interval(MutableSignal):
         asyncio.create_task(schedule_update())
 
 
+class WindowWithCount(Function):
+    """
+    Operator that accumulates values using a rolling window. Every tick results
+    in a new batch with one more value at the end and one less value at the front.
+
+    .. seealso:: http://reactivex.io/documentation/operators/window.html
+    """
+
+    def __init__(self, network: Network, values: Signal, count: int):
+        super().__init__(network, [values])
+        self.buffer = list()
+        self.count = count
+
+    def _call(self):
+        if self.parameters[0].is_valid():
+            if len(self.buffer) == self.count - 1:
+                self.buffer.append(self.parameters[0].get_value())
+                self._update(self.buffer)
+            elif len(self.buffer) == self.count:
+                self.buffer = self.buffer[1:]
+                self.buffer.append(self.parameters[0].get_value())
+                self._update(self.buffer)
+            else:
+                self.buffer.append(self.parameters[0].get_value())
+
+
 class Scan(Function):
     """
     Operator that accumulates values in a streaming fashion.
